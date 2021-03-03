@@ -1,0 +1,10 @@
+module example.com/b@v1.0.0
+
+-- .mod --
+module example.com/b
+-- .info --
+{"Version":"v1.0.0","Time":"2018-10-22T18:45:39Z"}
+-- go.mod --
+module example.com/b
+-- b.go --
+package b
