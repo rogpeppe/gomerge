@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"golang.org/x/mod/modfile"
@@ -23,13 +22,20 @@ func main1() int {
 }
 
 func main2() error {
-	base, local, remote, merged := os.Args[1], os.Args[2], os.Args[3], os.Args[4]
-	_ = base
-	if filepath.Base(merged) != "go.mod" {
-		// TODO look at Go files too.
-		return fmt.Errorf("cannot fix conflicts in non-go.mod files (base %q)", base)
+	fmt.Println(os.Args)
+	if len(os.Args) != 4 {
+		return fmt.Errorf("usage: gomerge current-path(%%A) other-path(%%B) final-path(%%P)")
 	}
-	localMod, err := parseGoMod(local)
+	// Note: the contract for custom merge drivers is defined here:
+	// https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
+	// The driver should write the resolved file by overwriting the current path.
+	current, remote, finalPath := os.Args[1], os.Args[2], os.Args[3]
+	if filepath.Base(finalPath) != "go.mod" {
+		// TODO look at Go files too.
+		return fmt.Errorf("cannot fix conflicts in non-go.mod files (base %q)", finalPath)
+	}
+
+	currentMod, err := parseGoMod(current)
 	if err != nil {
 		return fmt.Errorf("cannot parse local go.mod: %v", err)
 	}
@@ -38,23 +44,24 @@ func main2() error {
 		return fmt.Errorf("cannot parse remote go.mod: %v", err)
 	}
 	for _, req := range remoteMod.Require {
-		localMod.Require = append(localMod.Require, req)
+		currentMod.AddNewRequire(req.Mod.Path, req.Mod.Version, req.Indirect)
 	}
 	// TODO support exclude and replace too
-	localMod.Cleanup()
-	data, err := localMod.Format()
+	currentMod.Cleanup()
+	data, err := currentMod.Format()
 	if err != nil {
 		return fmt.Errorf("cannot format merged go.mod file: %v", err)
 	}
-	if err := ioutil.WriteFile(merged, data, 0666); err != nil {
+	if err := ioutil.WriteFile(current, data, 0666); err != nil {
 		return fmt.Errorf("cannot write merged file: %v", err)
 	}
-	c := exec.Command("go", "mod", "tidy")
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	if err := c.Run(); err != nil {
-		return fmt.Errorf("go mod tidy failed: %v", err)
-	}
+	fmt.Printf("overwrite %v with %q\n", current, data)
+	//c := exec.Command("go", "mod", "tidy")
+	//c.Stdout = os.Stdout
+	//c.Stderr = os.Stderr
+	//if err := c.Run(); err != nil {
+	//	return fmt.Errorf("go mod tidy failed: %v", err)
+	//}
 	return nil
 }
 
