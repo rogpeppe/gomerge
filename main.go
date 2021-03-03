@@ -21,8 +21,17 @@ func main1() int {
 	return 0
 }
 
+//
+//for each requirement:
+//	if requirement is already present at exact version,
+//		continue
+//	if requirement already has newer version:
+//		continue
+
 func main2() error {
 	fmt.Println(os.Args)
+	wd, _ := os.Getwd()
+	fmt.Println("cwd: ", wd)
 	if len(os.Args) != 4 {
 		return fmt.Errorf("usage: gomerge current-path(%%A) other-path(%%B) final-path(%%P)")
 	}

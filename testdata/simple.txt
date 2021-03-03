@@ -64,7 +64,10 @@ module github.com/rogpeppe/gomerge
 
 go 1.16
 
-require example.com/b v1.0.0
+require (
+	example.com/a v1.1.0
+	example.com/b v1.0.0
+)
 -- c2/b.go --
 package main
 
@@ -75,6 +78,6 @@ module github.com/rogpeppe/gomerge
 go 1.16
 
 require (
-	example.com/a v1.0.0
+	example.com/a v1.1.0
 	example.com/b v1.0.0
 )
