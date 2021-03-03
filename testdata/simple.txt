@@ -32,6 +32,7 @@ exec git merge branch1
 # merge branch2 onto main (conflict)
 ! exec git merge branch2
 exec git mergetool -t gomerge
+! exec git status
 -- c0/go.mod --
 module github.com/rogpeppe/gomerge
 
@@ -46,7 +47,7 @@ module github.com/rogpeppe/gomerge
 
 go 1.16
 
-require "example.com/a"
+require example.com/a v1.0.0
 -- c1/x.go --
 package main
 
@@ -61,7 +62,7 @@ module github.com/rogpeppe/gomerge
 
 go 1.16
 
-require "example.com/b"
+require example.com/b v1.0.0
 -- c2/b.go --
 package main
 
